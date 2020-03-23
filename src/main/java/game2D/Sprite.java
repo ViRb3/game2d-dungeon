@@ -262,30 +262,25 @@ public class Sprite {
     }
 
     /**
-     * Draws the sprite with the graphics object 'g' at the current x and y co-ordinates. Scaling and rotation
-     * transforms are NOT applied.
-     */
-    public void draw(Graphics2D g) {
-        if (!render) return;
-
-        g.drawImage(getImage(), (int) x + xoff, (int) y + yoff, null);
-    }
-
-    /**
      * Draws the sprite with the graphics object 'g' at the current x and y co-ordinates with the current scaling and
      * rotation transforms applied.
      *
      * @param g The graphics object to draw to,
      */
-    public void drawTransformed(Graphics2D g) {
+    public void draw(Graphics2D g) {
         if (!render) return;
 
-        AffineTransform transform = new AffineTransform();
-        transform.translate(Math.round(x) + xoff, Math.round(y) + yoff);
-        transform.scale(scale, scale);
-        transform.rotate(rotation, getImage().getWidth(null) / 2, getImage().getHeight(null) / 2);
-        // Apply transform to the image and draw it
-        g.drawImage(getImage(), transform, null);
+        // don't transform if not necessary
+        if (scale == 1.0f && rotation == 0.0f) {
+            g.drawImage(getImage(), (int) x + xoff, (int) y + yoff, null);
+        } else {
+            AffineTransform transform = new AffineTransform();
+            transform.translate(Math.round(x) + xoff, Math.round(y) + yoff);
+            transform.scale(scale, scale);
+            transform.rotate(rotation, getImage().getWidth(null) / 2, getImage().getHeight(null) / 2);
+            // Apply transform to the image and draw it
+            g.drawImage(getImage(), transform, null);
+        }
     }
 
 
