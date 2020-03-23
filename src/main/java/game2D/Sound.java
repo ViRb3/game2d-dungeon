@@ -1,7 +1,7 @@
 package game2D;
 
 import javax.sound.sampled.*;
-import java.io.File;
+import java.io.InputStream;
 
 public class Sound extends Thread {
 
@@ -20,19 +20,21 @@ public class Sound extends Thread {
      */
     public void run() {
         try {
-            File file = new File(filename);
-            AudioInputStream stream = AudioSystem.getAudioInputStream(file);
-            AudioFormat format = stream.getFormat();
-            DataLine.Info info = new DataLine.Info(Clip.class, format);
-            Clip clip = (Clip) AudioSystem.getLine(info);
-            clip.open(stream);
-            clip.start();
-            Thread.sleep(100);
-            while (clip.isRunning()) {
+            try (InputStream s = Util.readResource(filename)) {
+                AudioInputStream stream = AudioSystem.getAudioInputStream(s);
+                AudioFormat format = stream.getFormat();
+                DataLine.Info info = new DataLine.Info(Clip.class, format);
+                Clip clip = (Clip) AudioSystem.getLine(info);
+                clip.open(stream);
+                clip.start();
                 Thread.sleep(100);
+                while (clip.isRunning()) {
+                    Thread.sleep(100);
+                }
+                clip.close();
             }
-            clip.close();
         } catch (Exception e) {
+            e.printStackTrace();
         }
         finished = true;
 

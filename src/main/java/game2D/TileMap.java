@@ -1,9 +1,8 @@
 package game2D;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -85,12 +84,10 @@ public class TileMap {
      * @return true if the map loaded successfully, false otherwise
      */
     public boolean loadMap(String folder, String mapfile) {
-        // Create a full path to the tile map by sticking the folder and mapfile together
         String path = folder + "/" + mapfile;
         int row = 0;
 
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(path));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(Util.readResource(path)))) {
             String line = "";
             String trimmed = "";
             String[] vals;
@@ -105,7 +102,6 @@ public class TileMap {
             // Check that we read 4 values
             if (vals.length != 4) {
                 System.err.println("Incorrect number of parameters in the TileMap header:" + vals.length);
-                in.close();
                 return false;
             }
 
@@ -131,7 +127,7 @@ public class TileMap {
                     // and it's file name
                     String fileName = trimmed.substring(3);
 
-                    Image img = new ImageIcon(folder + "/" + fileName).getImage();
+                    Image img = Util.loadImageFromResource(folder + "/" + fileName);
                     // Now add this character->image mapping to the map
                     if (img != null)
                         imagemap.put(ch, img);
@@ -167,9 +163,6 @@ public class TileMap {
                     if (row >= mapHeight) break;
                 }
             }
-
-            in.close();
-
         } catch (Exception e) {
             System.err.println("Failed to read in tile map '" + path + "':" + e);
             return false;

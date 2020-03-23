@@ -124,7 +124,7 @@ public abstract class GameCore extends JFrame implements KeyListener {
      * @return A reference to the Image object that was loaded
      */
     public Image loadImage(String fileName) {
-        return new ImageIcon(fileName).getImage();
+        return Util.loadImageFromResource(fileName);
     }
 
     /**

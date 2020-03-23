@@ -1,6 +1,5 @@
 package game2D;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
@@ -161,7 +160,7 @@ public class Animation {
      * @param frameDuration The duration of each frame
      */
     public void loadAnimationFromSheet(String fileName, int columns, int rows, int frameDuration) {
-        Image sheet = new ImageIcon(fileName).getImage();
+        Image sheet = Util.loadImageFromResource(fileName);
         Image[] images = getImagesFromSheet(sheet, columns, rows);
 
         for (int i = 0; i < images.length; i++) {
