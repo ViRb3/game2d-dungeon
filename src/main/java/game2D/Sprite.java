@@ -42,7 +42,7 @@ public class Sprite {
     /**
      * Creates a new Sprite object with the specified Animation.
      *
-     * @param a The animation to use for the sprite.
+     * @param anim a The animation to use for the sprite.
      */
     public Sprite(Animation anim) {
         this.anim = anim;
@@ -116,7 +116,7 @@ public class Sprite {
     /**
      * Updates this Sprite's Animation and its position based on the elapsedTime.
      *
-     * @param The time that has elapsed since the last call to update
+     * @param elapsedTime The time that has elapsed since the last call to update
      */
     public void update(long elapsedTime) {
         if (!render) return;
