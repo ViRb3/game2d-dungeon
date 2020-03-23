@@ -43,6 +43,8 @@ public abstract class GameCore extends JFrame implements KeyListener {
         frames = 1;
         startTime = 1;
         currTime = 1;
+
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
 
