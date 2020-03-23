@@ -277,7 +277,7 @@ public class Sprite {
             AffineTransform transform = new AffineTransform();
             transform.translate(Math.round(x) + xoff, Math.round(y) + yoff);
             transform.scale(scale, scale);
-            transform.rotate(rotation, getImage().getWidth(null) / 2, getImage().getHeight(null) / 2);
+            transform.rotate(rotation, getImage().getWidth(null) / 2.0, getImage().getHeight(null) / 2.0);
             // Apply transform to the image and draw it
             g.drawImage(getImage(), transform, null);
         }
