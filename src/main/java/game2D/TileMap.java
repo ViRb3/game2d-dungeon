@@ -32,6 +32,7 @@ public class TileMap {
     private int mapHeight = 0;    // The maps height in tiles
     private int tileWidth = 0;    // The width of a tile in pixels
     private int tileHeight = 0;    // The height of a tile in pixels
+    private boolean drawCollisionBoxes = false;
 
     // imagemap contains a set of character to image mappings for
     // quick loop up of the image associated with a given character.
@@ -300,6 +301,9 @@ public class TileMap {
         Rectangle rect = (Rectangle) g.getClip();
         int xc, yc;
 
+        if (drawCollisionBoxes)
+            g.setColor(Color.green);
+
         for (int r = 0; r < mapHeight; r++) {
             for (int c = 0; c < mapWidth; c++) {
                 img = getTileImage(c, r);
@@ -311,7 +315,17 @@ public class TileMap {
                 if (xc + tileWidth < 0 || xc >= rect.x + rect.width) continue;
                 if (yc + tileHeight < 0 || yc >= rect.y + rect.height) continue;
                 g.drawImage(img, xc, yc, null);
+                if (drawCollisionBoxes)
+                    g.drawRect(xc, yc, tileWidth, tileHeight);
             }
         }
+    }
+
+    public boolean isDrawCollisionBoxes() {
+        return drawCollisionBoxes;
+    }
+
+    public void setDrawCollisionBoxes(boolean drawCollisionBoxes) {
+        this.drawCollisionBoxes = drawCollisionBoxes;
     }
 }
