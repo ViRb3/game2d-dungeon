@@ -39,6 +39,8 @@ public class Sprite {
     private int xoff = 0;
     private int yoff = 0;
 
+    private boolean flipped;
+
     /**
      * Creates a new Sprite object with the specified Animation.
      *
@@ -270,17 +272,19 @@ public class Sprite {
     public void draw(Graphics2D g) {
         if (!render) return;
 
-        // don't transform if not necessary
-        if (scale == 1.0f && rotation == 0.0f) {
-            g.drawImage(getImage(), (int) x + xoff, (int) y + yoff, null);
+        AffineTransform transform;
+        if (flipped) {
+            transform = AffineTransform.getScaleInstance(-1, 1);
+            transform.translate(-Math.round(x) - xoff - getImage().getWidth(null) * scale, Math.round(y) + yoff);
         } else {
-            AffineTransform transform = new AffineTransform();
+            transform = AffineTransform.getScaleInstance(1, 1);
             transform.translate(Math.round(x) + xoff, Math.round(y) + yoff);
-            transform.scale(scale, scale);
-            transform.rotate(rotation, getImage().getWidth(null) / 2.0, getImage().getHeight(null) / 2.0);
-            // Apply transform to the image and draw it
-            g.drawImage(getImage(), transform, null);
         }
+
+        transform.scale(scale, scale);
+        transform.rotate(rotation, getImage().getWidth(null) / 2.0, getImage().getHeight(null) / 2.0);
+        // Apply transform to the image and draw it
+        g.drawImage(getImage(), transform, null);
     }
 
 
@@ -315,4 +319,11 @@ public class Sprite {
     }
 
 
+    public boolean isFlipped() {
+        return flipped;
+    }
+
+    public void setFlipped(boolean flipped) {
+        this.flipped = flipped;
+    }
 }
