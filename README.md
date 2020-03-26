@@ -68,6 +68,9 @@ convert -crop 16x16 +repage tileset.png %d.png
 ```
 From there, I used [this Python script](merge.py) to merge any individual animation tiles into animation sets supported by the game engine.
 
+### Relative vs. absolute
+Since the game constantly works with both relative and absolute views, mistaking them becomes very easy. To solve this, I created two stub classes `RelativeRectangle` and `AbsoluteRectangle` which extend `Rectangle`. This allows the compiler to type-check for you if the correct type of coordinates is being used at all times point.
+
 ### Following camera
 The following camera was easy to achieve, simply by offsetting everything that is rendered based on the player's absolute position. Customizable bounding was added to the camera as well, so the camera cannot look beyond the left and right borders of the map.
 
