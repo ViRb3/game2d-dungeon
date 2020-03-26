@@ -1,10 +1,14 @@
 package game2D;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 
 /**
@@ -83,7 +87,7 @@ public class TileMap {
      * @param mapfile The name of the map file in the map folder
      * @return true if the map loaded successfully, false otherwise
      */
-    public boolean loadMap(String folder, String mapfile) {
+    public boolean loadMap(String folder, String mapfile, int scale) {
         String path = folder + "/" + mapfile;
         int row = 0;
 
@@ -108,8 +112,8 @@ public class TileMap {
             // Read in the map dimensions
             mapWidth = Integer.parseInt(vals[0]);
             mapHeight = Integer.parseInt(vals[1]);
-            tileWidth = Integer.parseInt(vals[2]);
-            tileHeight = Integer.parseInt(vals[3]);
+            tileWidth = Integer.parseInt(vals[2]) * scale;
+            tileHeight = Integer.parseInt(vals[3]) * scale;
 
             // Now look for the character assignments
             while ((line = in.readLine()) != null) {
@@ -128,10 +132,15 @@ public class TileMap {
                     String fileName = trimmed.substring(3);
 
                     Image img = Util.loadImageFromResource(folder + "/" + fileName);
-                    // Now add this character->image mapping to the map
-                    if (img != null)
-                        imagemap.put(ch, img);
-                    else
+                    if (img != null) {
+                        BufferedImage scaledImg = new BufferedImage(img.getWidth(null) * scale,
+                                img.getHeight(null) * scale, TYPE_INT_ARGB);
+                        AffineTransform transform = new AffineTransform();
+                        transform.scale(scale, scale);
+                        scaledImg.createGraphics().drawImage(img, transform, null);
+                        // Now add this character->image mapping to the map
+                        imagemap.put(ch, scaledImg);
+                    } else
                         System.err.println("Failed to load image '" + folder + "/" + fileName + "'");
                 }
             }
