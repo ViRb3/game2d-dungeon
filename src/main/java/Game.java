@@ -1,237 +1,216 @@
-import game2D.*;
+import game2D.GameCore;
+import game2D.Sound;
+import game2D.Util;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-
-// Game demonstrates how we can override the GameCore class
-// to create our own 'game'. We usually need to implement at
-// least 'draw' and 'update' (not including any local event handling)
-// to begin the process. You should also add code to the 'init'
-// method that will initialise event handlers etc. By default GameCore
-// will handle the 'Escape' key to quit the game but you should
-// override this with your own event handler.
-
-/**
- * @author David Cairns
- */
-@SuppressWarnings("serial")
+import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.Optional;
 
 public class Game extends GameCore {
-    // Useful game constants
-    static int screenWidth = 512;
-    static int screenHeight = 384;
+    private GameState state;
+    private int level;
 
-    float lift = 0.005f;
-    float gravity = 0.0001f;
-
-    // Game state flags
-    boolean flap = false;
-
-    // Game resources
-    Animation landing;
-
-    Sprite player = null;
-    ArrayList<Sprite> clouds = new ArrayList<Sprite>();
-
-    TileMap tmap = new TileMap();    // Our tile map, note that we load it in init()
-
-    long total;                    // The score will be the total time elapsed since a crash
-
-
-    /**
-     * The obligatory main method that creates an instance of our class and starts it running
-     *
-     * @param args The list of parameters this program might use (ignored)
-     */
     public static void main(String[] args) {
-
-        Game gct = new Game();
-        gct.init();
-        // Start in windowed mode with the given screen height and width
-        gct.run(false, screenWidth, screenHeight);
+        Game game = new Game();
+        game.init(1);
+        game.run(false, GameState.screenWidth, GameState.screenHeight);
     }
 
-    /**
-     * Initialise the class, e.g. set up variables, load images, create animations, register event handlers
-     */
-    public void init() {
-        Sprite s;    // Temporary reference to a sprite
-
-        // Load the tile map and print it out so we can check it is valid
-        tmap.loadMap("maps", "map.txt");
-
-        // Create a set of background sprites that we can 
-        // rearrange to give the illusion of motion
-
-        landing = new Animation();
-        landing.loadAnimationFromSheet("images/landbird.png", 4, 1, 60);
-
-        // Initialise the player with an animation
-        player = new Sprite(landing);
-
-        // Load a single cloud animation
-        Animation ca = new Animation();
-        ca.addFrame(loadImage("images/cloud.png"), 1000);
-
-        // Create 3 clouds at random positions off the screen
-        // to the right
-        for (int c = 0; c < 3; c++) {
-            s = new Sprite(ca);
-            s.setX(screenWidth + (int) (Math.random() * 200.0f));
-            s.setY(30 + (int) (Math.random() * 150.0f));
-            s.setVelocityX(-0.02f);
-            s.show();
-            clouds.add(s);
+    private void init(int level) {
+        long oldScore = 0;
+        if (state != null && !state.gameOver) {
+            oldScore = state.score;
         }
+        state = new GameState();
+        state.score += oldScore;
 
-        initialiseGame();
+        this.level = level;
+        state.tileMap.loadMap("maps", String.format("map%d.txt", level), 4);
 
-        System.out.println(tmap);
-    }
-
-    /**
-     * You will probably want to put code to restart a game in a separate method so that you can call it to restart the
-     * game.
-     */
-    public void initialiseGame() {
-        total = 0;
-
-        player.setX(64);
-        player.setY(280);
-        player.setVelocityX(0);
-        player.setVelocityY(0);
+        Player player = Player.create(state);
+        player.setX(2 * state.tileMap.getTileWidth());
+        player.setY(1);
         player.show();
-    }
 
-    /**
-     * Draw the current state of the game
-     */
-    public void draw(Graphics2D g) {
-        // Be careful about the order in which you draw objects - you
-        // should draw the background first, then work your way 'forward'
-
-        // First work out how much we need to shift the view
-        // in order to see where the player is.
-        int xo = 0;
-        int yo = 0;
-
-        // If relative, adjust the offset so that
-        // it is relative to the player
-
-        // ...?
-
-        g.setColor(Color.white);
-        g.fillRect(0, 0, getWidth(), getHeight());
-
-        // Apply offsets to sprites then draw them
-        for (Sprite s : clouds) {
-            s.setOffsets(xo, yo);
-            s.draw(g);
+        if (level == 1) {
+            initLevelOne();
+        } else {
+            initLevelTwo();
         }
 
-        // Apply offsets to player and draw 
-        player.setOffsets(xo, yo);
-        player.draw(g);
-
-        // Apply offsets to tile map and draw  it
-        tmap.draw(g, xo, yo);
-
-        // Show score and status information
-        String msg = String.format("Score: %d", total / 100);
-        g.setColor(Color.darkGray);
-        g.drawString(msg, getWidth() - 80, 50);
+        // player always on top
+        state.addGameObject(player);
     }
 
-    /**
-     * Update any sprites and check for collisions
-     *
-     * @param elapsed The elapsed time between this call and the previous call of elapsed
-     */
-    public void update(long elapsed) {
+    private void initLevelOne() {
+        NPC npc = NPC.create(state);
+        npc.setCoords(state.calcTileCoordsToAbsolute(5, 9));
+        npc.show();
 
-        // Make adjustments to the speed of the sprite due to gravity
-        player.setVelocityY(player.getVelocityY() + (gravity * elapsed));
+        Block block = Block.create(state);
+        block.setCoords(state.calcTileCoordsToAbsolute(9, 3));
+        block.show();
 
-        player.setAnimationSpeed(1.0f);
-
-        if (flap) {
-            player.setAnimationSpeed(1.8f);
-            player.setVelocityY(-0.04f);
-        }
-
-        for (Sprite s : clouds)
-            s.update(elapsed);
-
-        // Now update the sprites animation and position
-        player.update(elapsed);
-
-        // Then check for any collisions that may have occurred
-        handleTileMapCollisions(player, elapsed);
-
+        state.addGameObject(block);
+        state.addGameObject(npc);
     }
 
+    private void initLevelTwo() {
+        NPC npc = NPC.create(state);
+        npc.setCoords(state.calcTileCoordsToAbsolute(6, 9));
+        npc.show();
+        NPC npc2 = NPC.create(state);
+        npc2.setCoords(state.calcTileCoordsToAbsolute(12, 9));
+        npc2.show();
+        NPC npc3 = NPC.create(state);
+        npc3.setCoords(state.calcTileCoordsToAbsolute(8, 16));
+        npc3.show();
+        NPC npc4 = NPC.create(state);
+        npc4.setCoords(state.calcTileCoordsToAbsolute(12, 16));
+        npc4.show();
+        NPC npc5 = NPC.create(state);
+        npc5.setCoords(state.calcTileCoordsToAbsolute(14, 16));
+        npc5.show();
 
-    /**
-     * Checks and handles collisions with the tile map for the given sprite 's'. Initial functionality is limited...
-     *
-     * @param s       The Sprite to check collisions for
-     * @param elapsed How time has gone by
-     */
-    public void handleTileMapCollisions(Sprite s, long elapsed) {
-        // This method should check actual tile map collisions. For
-        // now it just checks if the player has gone off the bottom
-        // of the tile map.
+        Treasure treasure = Treasure.create(state);
+        treasure.setCoords(state.calcTileCoordsToAbsolute(7, 12));
+        treasure.show();
 
-        if (player.getY() + player.getHeight() > tmap.getPixelHeight()) {
-            // Put the player back on the map
-            player.setY(tmap.getPixelHeight() - player.getHeight());
-
-            // and make them bounce
-            player.setVelocityY(-player.getVelocityY() * (0.03f * elapsed));
-        }
+        state.addGameObject(treasure);
+        state.addGameObject(npc);
+        state.addGameObject(npc2);
+        state.addGameObject(npc3);
+        state.addGameObject(npc4);
+        state.addGameObject(npc5);
     }
-
-
-    /**
-     * Override of the keyPressed event defined in GameCore to catch our own events
-     *
-     * @param e The event that has been generated
-     */
-    public void keyPressed(KeyEvent e) {
-        int key = e.getKeyCode();
-
-        if (key == KeyEvent.VK_ESCAPE) stop();
-
-        if (key == KeyEvent.VK_UP) flap = true;
-
-        if (key == KeyEvent.VK_S) {
-            // Example of playing a sound as a thread
-            Sound s = new Sound("sounds/caw.wav");
-            s.start();
-        }
-    }
-
-    public boolean boundingBoxCollision(Sprite s1, Sprite s2) {
-        return false;
-    }
-
 
     public void keyReleased(KeyEvent e) {
+        state.gameObjects.forEach(o -> o.keyReleased(e));
+    }
 
-        int key = e.getKeyCode();
-
-        // Switch statement instead of lots of ifs...
-        // Need to use break to prevent fall through.
-        switch (key) {
+    public void keyPressed(KeyEvent e) {
+        if (state.gameOver || state.levelCompleted && level > 1) {
+            init(1);
+            return;
+        }
+        switch (e.getKeyCode()) {
             case KeyEvent.VK_ESCAPE:
                 stop();
                 break;
-            case KeyEvent.VK_UP:
-                flap = false;
-                break;
-            default:
+            case KeyEvent.VK_F:
+                state.setDrawCollisionBoxes(!state.isDrawCollisionBoxes());
                 break;
         }
+        state.gameObjects.forEach(o -> o.keyPressed(e));
+    }
+
+    public void update(long elapsed) {
+        for (GameObject gameObject : state.gameObjects)
+            gameObject.tickUpdate(elapsed);
+        state.collectGarbage();
+    }
+
+    public void draw(Graphics2D g) {
+        g.setColor(Color.decode("#332a29"));
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        if (state.levelCompleted) {
+            if (level > 1) {
+                gameWon(g);
+            } else {
+                init(level + 1);
+            }
+            return;
+        }
+
+        if (state.gameOver) {
+            gameOver(g);
+            return;
+        }
+
+        Point cameraOffset = state.getCameraOffset();
+        // Apply offsets to tile map and draw it
+        state.tileMap.draw(g, cameraOffset.x, cameraOffset.y);
+        // then draw sprites
+        state.gameObjects.forEach(o -> o.draw(g, cameraOffset.x, cameraOffset.y));
+        // and finally score
+        printScore(g);
+
+    }
+
+    private static Sound winSound = new Sound(new RandomFadeFilterStream(Util.readResource("sounds/win.wav")));
+
+    private void gameWon(Graphics g) {
+        winSound.play();
+        String a = "Game Won!";
+        String b = String.format("Score: %d", state.score);
+        String c = "Press any key to restart...";
+        g.setColor(Color.white);
+        g.setFont(new Font("TimesRoman", Font.PLAIN, 50));
+        g.drawString(a, 100, 100);
+        g.drawString(b, 100, 200);
+        g.drawString(c, 100, 300);
+    }
+
+    private void gameOver(Graphics g) {
+        String a = "Game Over!";
+        String b = String.format("Score: %d", state.score);
+        String c = "Press any key to restart...";
+        g.setColor(Color.white);
+        g.setFont(new Font("TimesRoman", Font.PLAIN, 50));
+        g.drawString(a, 100, 100);
+        g.drawString(b, 100, 200);
+        g.drawString(c, 100, 300);
+    }
+
+    private void printScore(Graphics g) {
+        String msg = String.format("Score: %d", state.score);
+        g.setColor(Color.white);
+        g.setFont(new Font("TimesRoman", Font.PLAIN, 15));
+        g.drawString(msg, getWidth() - 80, 50);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        Point absoluteCoords = state.getCameraOffset();
+        absoluteCoords.x -= e.getX();
+        absoluteCoords.x *= -1;
+        absoluteCoords.y -= e.getY();
+        absoluteCoords.y *= -1;
+        Point tileCoords = state.calcAbsoluteCoordsToTile(absoluteCoords.x, absoluteCoords.y);
+        Point absoluteCoordsRounded = state.calcTileCoordsToAbsolute(tileCoords.x, tileCoords.y);
+
+        Optional<List<GameObject>> gameObjects = state.gameObjectMap.get(absoluteCoordsRounded.x, absoluteCoordsRounded.y);
+        if (gameObjects.isPresent()) {
+            for (GameObject gameObject : gameObjects.get()) {
+                if (gameObject instanceof Treasure) {
+                    ((Treasure) gameObject).claim();
+                } else if (gameObject instanceof NPC) {
+                    ((NPC) gameObject).die();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
     }
 }
