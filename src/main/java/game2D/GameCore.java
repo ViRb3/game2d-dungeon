@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 
 
@@ -13,7 +14,7 @@ import java.awt.image.BufferedImage;
  * Core Game class that implements default game loop. Subclasses should implement the draw() method and override the
  * update method.
  */
-public abstract class GameCore extends JFrame implements KeyListener {
+public abstract class GameCore extends JFrame implements KeyListener, MouseListener {
 
     protected static final int FONT_SIZE = 12;
     private static final long serialVersionUID = 1L;
@@ -96,6 +97,7 @@ public abstract class GameCore extends JFrame implements KeyListener {
         setVisible(true);
 
         win.addKeyListener(this);
+        win.addMouseListener(this);
         win.setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
     }
 
