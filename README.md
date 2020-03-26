@@ -69,10 +69,10 @@ convert -crop 16x16 +repage tileset.png %d.png
 From there, I used [this Python script](merge.py) to merge any individual animation tiles into animation sets supported by the game engine.
 
 ### Relative vs. absolute
-Since the game constantly works with both relative and absolute views, mistaking them becomes very easy. To solve this, I created two stub classes `RelativeRectangle` and `AbsoluteRectangle` which extend `Rectangle`. This allows the compiler to type-check for you if the correct type of coordinates is being used at all times point.
+Since the game constantly works with both relative and absolute views, mistaking them becomes very easy. To solve this, I created two stub classes `RelativeRectangle` and `AbsoluteRectangle` which extend `Rectangle`. This allows the compiler to type-check for you if the correct type of coordinates is being used at all times.
 
-### Following camera
-The following camera was easy to achieve, simply by offsetting everything that is rendered based on the player's absolute position. Customizable bounding was added to the camera as well, so the camera cannot look beyond the left and right borders of the map.
+### Camera following player
+The camera following the player was easy to achieve, simply by offsetting everything that is rendered based on the player's absolute position. Customizable bounding was added to the camera as well, so the camera cannot look beyond the left and right borders of the map.
 
 ### GameObject
 Based on Unity's `GameObject` pattern, this game implements an abstract, feature-rich object that can be used to quickly spawn and bring to life various entities. All non-static entities such as the `Player` and `NPC`s inherit from this object. 
@@ -114,7 +114,7 @@ After a lot of trial and error, I devised the following stable approach:
 - Repeat this process until no more collision is detected
 
 ## Further improvements
-A lot of improvements can be made to this game, given the current status is just a prototype. Nevertheless, some major notes include:
+A lot of improvements can be made to this game, given the current state is just a prototype. Some major notes include:
 
 ### Quality
 - More realistic gravity
