@@ -1,6 +1,7 @@
 package game2D;
 
 import javax.sound.sampled.*;
+import java.io.BufferedInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,8 @@ public class Sound {
     public Sound(String path) {
         try {
             InputStream s = Util.readResource(path);
-            AudioInputStream stream = AudioSystem.getAudioInputStream(s);
+            BufferedInputStream bs = new BufferedInputStream(s);
+            AudioInputStream stream = AudioSystem.getAudioInputStream(bs);
             AudioFormat format = stream.getFormat();
             DataLine.Info info = new DataLine.Info(Clip.class, format);
             clip = (Clip) AudioSystem.getLine(info);

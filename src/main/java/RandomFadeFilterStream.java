@@ -1,3 +1,4 @@
+import java.io.BufferedInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -5,7 +6,7 @@ import java.io.InputStream;
 public class RandomFadeFilterStream extends FilterInputStream {
 
     RandomFadeFilterStream(InputStream in) {
-        super(in);
+        super(new BufferedInputStream(in));
     }
 
     public short getSample(byte[] buffer, int position) {
